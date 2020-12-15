@@ -1,0 +1,1 @@
+This is the major stumbling block to experimental realisation of the Lorenz system in lasers.

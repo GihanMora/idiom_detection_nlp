@@ -1,0 +1,1 @@
+It's an embarrassing thing for a fault-tolerant vendor to have to say, but a bug in Guardian for the Tandem Computers Inc NonStop CLX machines caused them to reset their clocks to December 1,1983 on November 1, causing systems with time-dependent programs to go haywire.

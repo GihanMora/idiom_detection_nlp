@@ -1,0 +1,1 @@
+Remorseful Prober does better against tit for tat than Naive Prober does, though not as well as tit for tat does against itself.

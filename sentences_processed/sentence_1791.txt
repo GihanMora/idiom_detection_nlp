@@ -1,0 +1,1 @@
+It is important, for any member of the Tit for Tat family of strategies, that the players are punished for defection.

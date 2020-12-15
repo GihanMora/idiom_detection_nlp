@@ -1,0 +1,1 @@
+As a starting point for a full-function open operating system, VM could scarcely be bettered, but IBM in its wisdom poured money into MVS and allowed VM to wither on the vine.

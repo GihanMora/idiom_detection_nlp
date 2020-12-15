@@ -1,0 +1,1 @@
+Now, if you wan na know what the maximum value and negat-- if the score's are negatively correlated rather than positive, you end up with exactly the same expression, N minus one, but lo and behold it's negative.

@@ -1,0 +1,1 @@
+The manual alternative, in which you have to switch from record mode to play, and then check to find the end of the previous recording by trial and error before returning to record mode, is messy, time-consuming and wasteful of precious battery-time.

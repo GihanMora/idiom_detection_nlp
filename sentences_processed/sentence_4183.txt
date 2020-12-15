@@ -1,0 +1,1 @@
+Unlike Tit for Tat, Always Cooperate is not stable against invasion by nasty strategies such as Always Defect.

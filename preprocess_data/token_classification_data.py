@@ -10,7 +10,11 @@ def getsubidx(x, y):
     for i in range(l1):
         if x[i:i+l2] == y:
             return [i,i+l2]
+
+sentence_tokens_list = []
+idiom_tokens_list = []
 tags_list = []
+
 for _, row in df.iterrows():
 
     sent_tokens = row['sentence'].replace(',','').replace(';','').replace('?','').replace("'",'').replace('.','').split(" ")
@@ -21,8 +25,11 @@ for _, row in df.iterrows():
     tags[period[0]:period[1]] = [1]*(period[1]-period[0])
     print(tags)
     tags_list.append(tags)
+    sentence_tokens_list.append(sent_tokens)
+    idiom_tokens_list.append(idiom_tokens)
 
 
 df['tags'] = tags_list
-
+df['sentence_tokens'] = sentence_tokens_list
+df['idiom_tokens'] = idiom_tokens_list
 df.to_csv("with_tags.csv")

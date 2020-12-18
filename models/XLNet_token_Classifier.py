@@ -16,8 +16,8 @@ for _, row in df.iterrows():
 
 train_texts, val_texts, train_tags, val_tags = train_test_split(token_docs, tag_docs, test_size=.2)
 # print(train_texts)
-from transformers import DistilBertTokenizerFast
-tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-cased')
+from transformers import XLNetTokenizerFast
+tokenizer = XLNetTokenizerFast.from_pretrained('xlnet-base-cased')
 train_encodings = tokenizer(train_texts, is_split_into_words=True, return_offsets_mapping=True, padding=True, truncation=True)
 val_encodings = tokenizer(val_texts, is_split_into_words=True, return_offsets_mapping=True, padding=True, truncation=True)
 print("this")
@@ -87,8 +87,8 @@ val_dataset = tf.data.Dataset.from_tensor_slices((
 
 
 #Use tensorflow to train and evaluate
-from transformers import TFDistilBertForTokenClassification
-model = TFDistilBertForTokenClassification.from_pretrained('distilbert-base-cased', num_labels=2)
+from transformers import TFXLNetForTokenClassification
+model = TFXLNetForTokenClassification.from_pretrained('xlnet-base-cased', num_labels=2)
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=5e-5)
 model.compile(optimizer=optimizer, loss=model.compute_loss,metrics=["accuracy"]) # can also use any keras loss fn
@@ -98,8 +98,8 @@ history = model.fit(train_dataset.shuffle(1000).batch(16), epochs=5, batch_size=
 # model = tf.keras.models.load_model("E:\Projects\A_Idiom_detection_gihan\idiom_detection_nlp\models\model_files\\")
 # Evaluate the model on the test data using `evaluate`
 
-model_config = {'model':"TFDistilBertForTokenClassification",
-                'tokenizer':"DistilBertTokenizerFast",
+model_config = {'model':"TFXLNetForTokenClassification",
+                'tokenizer':"XLNetTokenizerFast",
                 'lr':"5e-5",
                 'Epochs':"5",
                 'Batch-size':"16"
@@ -111,6 +111,7 @@ f.write("Model Configurations\n")
 f.write('Model '+model_config['model']+'\n')
 f.write('Tokenizer '+model_config['tokenizer']+'\n')
 f.write('leaning rate '+model_config['lr']+'\n')
+f.write('Epochs '+model_config['Epochs']+'\n')
 f.write('Batch Size '+model_config['Batch-size']+'\n')
 f.write('Model Training History'+'\n')
 f.write('Model History '+str(history.history)+'\n')

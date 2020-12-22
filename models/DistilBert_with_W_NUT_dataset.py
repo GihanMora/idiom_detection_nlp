@@ -1,71 +1,69 @@
 import pandas as pd
 import ast
 from sklearn.model_selection import train_test_split
-df = pd.read_csv("..\preprocess_data\with_tags.csv")
+from pathlib import Path
+import re
 
-token_docs = []
-tag_docs = []
+def read_wnut(file_path):
+    file_path = Path(file_path)
+
+    raw_text = file_path.read_text().strip()
+    raw_docs = re.split(r'\n\t?\n', raw_text)
+    token_docs = []
+    tag_docs = []
+    for doc in raw_docs:
+        tokens = []
+        tags = []
+        for line in doc.split('\n'):
+            token, tag = line.split('\t')
+            tokens.append(token)
+            tags.append(tag)
+        token_docs.append(tokens)
+        tag_docs.append(tags)
+
+    return token_docs, tag_docs
+
+texts, tags = read_wnut('E:\Projects\A_Idiom_detection_gihan\idiom_detection_nlp\W_NUT_dataset\wnut17train.conll\\')
+
+token_docs = texts
+tag_docs = tags
 
 
-for _, row in df.iterrows():
-    token_docs.append(ast.literal_eval(row['sentence_tokens']))
-    tag_docs.append(ast.literal_eval(row['tags']))
+
 
 
 # print(token_docs)
 
 train_texts, val_texts, train_tags, val_tags = train_test_split(token_docs, tag_docs, test_size=.2)
-# print(train_texts)
-from transformers import XLNetTokenizerFast
-tokenizer = XLNetTokenizerFast.from_pretrained('xlnet-base-cased')
+unique_tags = set(tag for doc in tags for tag in doc)
+tag2id = {tag: id for id, tag in enumerate(unique_tags)}
+id2tag = {id: tag for tag, id in tag2id.items()}
+print(unique_tags)
+print(id2tag)
+from transformers import DistilBertTokenizerFast
+tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-cased')
 train_encodings = tokenizer(train_texts, is_split_into_words=True, return_offsets_mapping=True, padding=True, truncation=True)
 val_encodings = tokenizer(val_texts, is_split_into_words=True, return_offsets_mapping=True, padding=True, truncation=True)
-print("this")
-print(train_encodings["input_ids"][:5])
-print(train_encodings["attention_mask"][:5])
-
 import numpy as np
 
 def encode_tags(tags, encodings):
-    labels = tags
+    labels = [[tag2id[tag] for tag in doc] for doc in tags]
     encoded_labels = []
-    i=0
     for doc_labels, doc_offset in zip(labels, encodings.offset_mapping):
-        # print(len(doc_labels),len(doc_offset))
+        # create an empty array of -100
+        doc_enc_labels = np.ones(len(doc_offset),dtype=int) * -1
+        arr_offset = np.array(doc_offset)
 
-        try:
-            # create an empty array of -100
-            doc_enc_labels = np.ones(len(doc_offset),dtype=int) * -100
-            arr_offset = np.array(doc_offset)
+        # set labels whose first offset position is 0 and the second is not 0
+        doc_enc_labels[(arr_offset[:,0] == 0) & (arr_offset[:,1] != 0)] = doc_labels
+        encoded_labels.append(doc_enc_labels.tolist())
 
-            # set labels whose first offset position is 0 and the second is not 0
-            doc_enc_labels[(arr_offset[:,0] == 0) & (arr_offset[:,1] != 0)] = doc_labels
-            encoded_labels.append(doc_enc_labels.tolist())
-
-            # print(doc_enc_labels.tolist())
-            # break
-        except Exception as e:
-
-            print()
-            print(e)
-            print(token_docs[i])
-            print(tag_docs[i])
-            # print(len(doc_labels), len(doc_offset))
-            len1 = len(doc_enc_labels[(arr_offset[:, 0] == 0) & (arr_offset[:, 1] != 0)])
-            len2 = len(doc_labels)
-            print(len1,len2)
-            if(len1<len2):
-                doc_enc_labels[(arr_offset[:, 0] == 0) & (arr_offset[:, 1] != 0)] = doc_labels[:len1]
-            elif (len1 > len2):
-                doc_enc_labels[(arr_offset[:, 0] == 0) & (arr_offset[:, 1] != 0)][:len2] = doc_labels
-            encoded_labels.append(doc_enc_labels.tolist())
-            # break
-
-        i=i+1
     return encoded_labels
 
 train_labels = encode_tags(train_tags, train_encodings)
 val_labels = encode_tags(val_tags, val_encodings)
+print(train_labels[:5])
+print(val_labels[:5])
 #without encoding tags
 # train_labels = train_tags
 # val_labels = val_tags
@@ -87,20 +85,20 @@ val_dataset = tf.data.Dataset.from_tensor_slices((
 
 
 #Use tensorflow to train and evaluate
-from transformers import TFXLNetForTokenClassification
-model = TFXLNetForTokenClassification.from_pretrained('xlnet-base-cased', num_labels=2)
+from transformers import TFDistilBertForTokenClassification
+model = TFDistilBertForTokenClassification.from_pretrained('distilbert-base-cased', num_labels=len(unique_tags))
 
-optimizer = tf.keras.optimizers.Adam(learning_rate=5e-8)
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
 model.compile(optimizer=optimizer, loss=model.compute_loss,metrics=["accuracy"]) # can also use any keras loss fn
-history = model.fit(train_dataset.shuffle(1000).batch(16), epochs=5, batch_size=16)
+history = model.fit(train_dataset.shuffle(100).batch(16), epochs=3, batch_size=16)
 # model.save("E:\Projects\A_Idiom_detection_gihan\idiom_detection_nlp\models\model_files\\")
 # import tensorflow as tf
 # model = tf.keras.models.load_model("E:\Projects\A_Idiom_detection_gihan\idiom_detection_nlp\models\model_files\\")
 # Evaluate the model on the test data using `evaluate`
 
-model_config = {'model':"TFXLNetForTokenClassification",
-                'tokenizer':"XLNetTokenizerFast",
-                'lr':"5e-8",
+model_config = {'model':"TFDistilBertForTokenClassification_W_NUT",
+                'tokenizer':"DistilBertTokenizerFast",
+                'lr':"0.01",
                 'Epochs':"5",
                 'Batch-size':"16"
                 }
@@ -111,7 +109,6 @@ f.write("Model Configurations\n")
 f.write('Model '+model_config['model']+'\n')
 f.write('Tokenizer '+model_config['tokenizer']+'\n')
 f.write('leaning rate '+model_config['lr']+'\n')
-f.write('Epochs '+model_config['Epochs']+'\n')
 f.write('Batch Size '+model_config['Batch-size']+'\n')
 f.write('Model Training History'+'\n')
 f.write('Model History '+str(history.history)+'\n')

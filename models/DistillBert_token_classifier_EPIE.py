@@ -105,9 +105,12 @@ def compute_metrics(pred,ground_labels):
         print(out_dict[k])
 
 
-data_read = read_dataset("..\EPIE_dataset\EPIE_formal_dataset.csv")
-token_docs = data_read[0]
-tag_docs = data_read[1]
+data_read1 = read_dataset("..\EPIE_dataset\EPIE_formal_dataset.csv")
+data_read2 = read_dataset("..\EPIE_dataset\EPIE_dataset.csv")
+
+# data_read = pd.concat([data_read1,data_read2])
+token_docs = data_read1[0] + data_read2[0]
+tag_docs = data_read1[1] + data_read2[1]
 print(token_docs[:5])
 print(tag_docs[:5])
 # train_texts, val_texts, train_tags, val_tags = train_test_split(token_docs, tag_docs, test_size=.2, random_state=42)

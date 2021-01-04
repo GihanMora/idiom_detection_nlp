@@ -38,15 +38,16 @@ def get_browser():
 
 
 def scrape(comp_url):
-    time.sleep(10)
+
     browser = get_browser()
     print('check1')
     # browser.set_page_load_timeout(30)
 
     browser.get(comp_url)
-    # time.sleep(5)
+    time.sleep(5)
     pageSource = browser.page_source
     # print(pageSource)
+    time.sleep(5)
 
 
     soup = BeautifulSoup(pageSource, 'html.parser')#bs4
@@ -56,6 +57,7 @@ def scrape(comp_url):
     idioms_list = []
     meaning_list = []
     idiomic_part_list = []
+    erros = []
     for k in idioms_seg:
         idioms_list.append(k.text)
         # p_text = k.text
@@ -63,19 +65,30 @@ def scrape(comp_url):
         #     meaning = p_text
         # if('Example:' in p_text):
         #     example =
-    for dd in dd_seg:
+    for i,dd in enumerate(dd_seg):
         p_seg = dd.findAll('p')
         for k_i in p_seg:
             print(k_i)
             p_text = k_i.text
-            if('Meaning:' in p_text):
+            if (('Meaning:' in p_text) and 'Example:' in p_text):
+                print('both in ', p_text)
+                erros.append(idioms_list[i])
+            elif('Meaning:' in p_text):
                 meaning = p_text
                 meaning_list.append(meaning)
-            if('Example:' in p_text):
+            elif('Example:' in p_text):
                 example = p_text
                 idiomic_part = k_i.findAll('strong')[-1].text
                 example_list.append(example)
                 idiomic_part_list.append(idiomic_part)
+
+            else:
+                print('error in this id',i,idioms_list[i])
+                erros.append(idioms_list[i])
+                # idioms_list.remove()
+    erros = list(set(erros))
+    for er in erros:
+        idioms_list.remove(er)
     browser.quit()
 
     print(idioms_list)
@@ -92,21 +105,24 @@ e_example_list = []
 e_idioms_list = []
 e_meaning_list = []
 e_idiomic_part_list = []
-for i in range(35,44):
+for i in range(110,142):
     print(i)
     comp_url = 'https://www.theidioms.com/list/page/'+str(i)+'/'
     results = scrape(comp_url)
     print(results)
-    e_example_list = e_example_list +results['examples']
-    e_idioms_list = e_idioms_list + results['idioms']
-    e_meaning_list = e_meaning_list + results['meanings']
-    e_idiomic_part_list = e_idiomic_part_list + results['idiomics']
-    print([len(results['examples']),len(results['idioms']),len(results['meanings']),len(results['idiomics'])])
+    if(len(results['examples'])==len(results['idioms'])==len(results['meanings'])==len(results['idiomics'])):
+        e_example_list = e_example_list +results['examples']
+        e_idioms_list = e_idioms_list + results['idioms']
+        e_meaning_list = e_meaning_list + results['meanings']
+        e_idiomic_part_list = e_idiomic_part_list + results['idiomics']
+        print([len(results['examples']),len(results['idioms']),len(results['meanings']),len(results['idiomics'])])
+    else:
+        print("*********************************error************************")
 
 output_df['idiom']=e_idioms_list
 output_df['meaning'] = e_meaning_list
 output_df['example']= e_example_list
 output_df['idiomatic_part'] = e_idiomic_part_list
-
-output_df.to_csv('Out15_35.csv')
+print(output_df.head(10))
+output_df.to_csv('Out110_142.csv')
 

@@ -1,0 +1,82 @@
+theidioms.com training and test 3 epochs
+accuracy
+0.9277526395173454
+f1
+[0.96059235 0.56651584]
+precision
+[0.93229    0.85054348]
+recall
+[0.99066689 0.42469471]
+confusiton_mat
+[[5838   55]
+ [ 424  313]]
+
+theidioms.com training and test 10 epochs
+accuracy
+0.9605203619909503
+f1
+[0.9785244  0.75577327]
+precision
+[0.97390985 0.79881657]
+recall
+[0.98318289 0.71713147]
+confusiton_mat
+[[7951  136]
+ [ 213  540]]
+
+theidioms.com training and test 15 epochs
+accuracy
+0.9678733031674208
+f1
+[0.98244095 0.81142098]
+precision
+[0.98244095 0.81142098]
+recall
+[0.98244095 0.81142098]
+confusiton_mat
+[[7945  142]
+ [ 142  611]]
+
+
+2521 training and theidioms test
+accuracy
+0.9218702865761689
+f1
+[0.95742652 0.52598829]
+precision
+[0.9268347  0.83159722]
+recall
+[0.99010675 0.38463597]
+confusiton_mat
+[[29123   291]
+ [ 2299  1437]]
+
+
+EPIE_formal training with theidioms test - 3 epochs - maxlen -40
+
+accuracy
+0.9449773755656109
+f1
+[0.97025513 0.63362459]
+precision
+[0.95802237 0.75187701]
+recall
+[0.98280433 0.54751367]
+confusiton_mat
+[[39665   694]
+ [ 1738  2103]]
+
+
+EPIE formal training and test max len 40 10 epochs
+
+accuracy
+0.9719347133757962
+f1
+[0.98481225 0.81549333]
+precision
+[0.97821621 0.88825542]
+recall
+[0.99149785 0.7537494 ]
+confusiton_mat
+[[22857   196]
+ [  509  1558]]

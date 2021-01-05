@@ -38,8 +38,8 @@ def read_dataset(path):
     tag_docs = []
 
     for _, row in df.iterrows():
-        token_docs.append(row['words'].split(" "))
-        tag_docs.append(ast.literal_eval(row['tags_fixed']))
+        token_docs.append(ast.literal_eval(row['sentence_tokens']))
+        tag_docs.append(ast.literal_eval(row['tags']))
     return [token_docs,tag_docs]
 
 #reencode the labels such that it preserves the token-label alignment
@@ -105,20 +105,12 @@ def compute_metrics(pred,ground_labels):
         print(out_dict[k])
 
 
-data_read1 = read_dataset("..\EPIE_dataset\EPIE_formal_dataset.csv")
-# data_read2 = read_dataset("..\EPIE_dataset\EPIE_dataset.csv")
+data_read = read_dataset("..\Idiom_scraper\with_tags_theidioms.com.csv")
+token_docs = data_read[0]
+tag_docs = data_read[1]
 
-# data_read = pd.concat([data_read1,data_read2])
-# token_docs = data_read1[0] + data_read2[0]
-# tag_docs = data_read1[1] + data_read2[1]
+train_texts, val_texts, train_tags, val_tags = train_test_split(token_docs, tag_docs, test_size=.2, random_state=29)
 
-token_docs = data_read1[0]
-tag_docs = data_read1[1]
-
-print(token_docs[:5])
-print(tag_docs[:5])
-# train_texts, val_texts, train_tags, val_tags = train_test_split(token_docs, tag_docs, test_size=.2, random_state=42)
-train_texts, val_texts, train_tags, val_tags = train_test_split(token_docs, tag_docs, test_size=.2)
 #setting the tokenizer
 tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-cased')
 
@@ -147,15 +139,14 @@ test_dataset = tf.data.Dataset.from_tensor_slices((
 
 #training arguments
 training_args = TFTrainingArguments(
-    output_dir='E:\Projects\A_Idiom_detection_gihan\idiom_detection_nlp\models\\epie_models\\',          # output directory
-    num_train_epochs=10,              # total number of training epochs
+    output_dir='E:\Projects\A_Idiom_detection_gihan\idiom_detection_nlp\models\\',          # output directory
+    num_train_epochs=15,              # total number of training epochs
     per_device_train_batch_size=16,  # batch size per device during training
     per_device_eval_batch_size=5,   # batch size for evaluation
     warmup_steps=500,                # number of warmup steps for learning rate scheduler
     weight_decay=0.01,               # strength of weight decay
-    logging_dir='E:\Projects\A_Idiom_detection_gihan\idiom_detection_nlp\models\\epie_models\\',            # directory for storing logs
+    logging_dir='E:\Projects\A_Idiom_detection_gihan\idiom_detection_nlp\models\\',            # directory for storing logs
     logging_steps=10,
-    save_total_limit=1,
     evaluation_strategy= EvaluationStrategy.NO,
 
 )
@@ -176,6 +167,6 @@ trainer.train()
 
 #predictions
 prediction_results = trainer.predict(test_dataset=test_dataset)
-trainer.save_model("E:\Projects\A_Idiom_detection_gihan\idiom_detection_nlp\models\\epie_models\\")
+trainer.save_model("E:\Projects\A_Idiom_detection_gihan\idiom_detection_nlp\models\\")
 
 compute_metrics(prediction_results,val_labels)

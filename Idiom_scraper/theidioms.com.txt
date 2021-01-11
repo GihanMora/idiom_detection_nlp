@@ -38,7 +38,7 @@ confusiton_mat
  [ 142  611]]
 
 
-2521 training and theidioms test
+2521 training and theidioms test -3 epochs
 accuracy
 0.9218702865761689
 f1
@@ -50,6 +50,19 @@ recall
 confusiton_mat
 [[29123   291]
  [ 2299  1437]]
+
+2521 training and theidioms test - 10 epochs 40 mxlen
+ accuracy
+0.9481674208144797
+f1
+[0.97196628 0.65688183]
+precision
+[0.96015859 0.77327221]
+recall
+[0.98406799 0.57094507]
+confusiton_mat
+[[39716   643]
+ [ 1648  2193]]
 
 
 EPIE_formal training with theidioms test - 3 epochs - maxlen -40
@@ -65,6 +78,24 @@ recall
 confusiton_mat
 [[39665   694]
  [ 1738  2103]]
+
+EPIE_formal training with theidioms test - 10 epochs - maxlen -40
+
+accuracy
+0.9454298642533937
+f1
+[0.97060759 0.61943831]
+precision
+[0.95496727 0.78614337]
+recall
+[0.98676875 0.51106483]
+confusiton_mat
+[[39825   534]
+ [ 1878  1963]]
+
+
+
+
 
 
 EPIE formal training and test max len 40 10 epochs

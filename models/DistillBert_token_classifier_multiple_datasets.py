@@ -116,7 +116,7 @@ def compute_metrics(pred,ground_labels):
         print(out_dict[k])
 
 
-train_data_read = read_dataset_EPIE("..\EPIE_dataset\EPIE_formal_dataset.csv")
+train_data_read = read_dataset("..\preprocess_data\with_tags.csv")
 train_token_docs = train_data_read[0]
 train_tag_docs = train_data_read[1]
 

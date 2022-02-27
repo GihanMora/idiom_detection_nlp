@@ -1,12 +1,13 @@
 import pandas as pd
 import ast
-from sklearn.model_selection import train_test_split
-import tensorflow as tf
+# from sklearn.model_selection import train_test_split
+# import tensorflow as tf
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support,confusion_matrix
+from sklearn.model_selection import train_test_split
 from transformers import DistilBertTokenizerFast
 import tensorflow as tf
 from transformers import TFDistilBertForTokenClassification, TFTrainer, TFTrainingArguments
-# from transformers import EvaluationStrategy
+from transformers import EvaluationStrategy
 import numpy as np
 
 
@@ -38,8 +39,8 @@ def read_dataset(path):
     tag_docs = []
 
     for _, row in df.iterrows():
-        token_docs.append(row['words'].split(" "))
-        tag_docs.append(ast.literal_eval(row['tags_fixed']))
+        token_docs.append(ast.literal_eval(row['sentence_tokens']))
+        tag_docs.append(ast.literal_eval(row['tags']))
     return [token_docs,tag_docs]
 
 #reencode the labels such that it preserves the token-label alignment
@@ -105,30 +106,24 @@ def compute_metrics(pred,ground_labels):
         print(out_dict[k])
 
 
-data_read1 = read_dataset("..\EPIE_dataset\EPIE_formal_dataset.csv")
-data_read2 = read_dataset("..\EPIE_dataset\EPIE_dataset.csv")
+data_read = read_dataset("..\preprocess_data\with_tags.csv")
+token_docs = data_read[0]
+tag_docs = data_read[1]
+# print(token_docs)
+# print(tag_docs)
 
-data_read =data_read1+data_read2
-token_docs = data_read1[0] + data_read2[0]
-tag_docs = data_read1[1] + data_read2[1]
 
-# token_docs = data_read1[0]
-# tag_docs = data_read1[1]
+train_texts, val_texts, train_tags, val_tags = train_test_split(token_docs, tag_docs, test_size=.2, random_state=42)
 
-# print(token_docs[:1])
-# print(tag_docs[:1])
-manual_sample_sentences = [['That was a moot point'.split()]]
-print(manual_sample_sentences)
-# train_texts, val_texts, train_tags, val_tags = train_test_split(token_docs, tag_docs, test_size=.2, random_state=42)
-train_texts, val_texts, train_tags, val_tags = train_test_split(token_docs, tag_docs, test_size=.2,random_state=42)
-print(val_texts[:2])
-print(val_tags[:2])
 #setting the tokenizer
 tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-cased')
 
 
-train_encodings = tokenizer(train_texts, is_split_into_words=True, return_offsets_mapping=True, padding=True,truncation=True, max_length=40)
-val_encodings = tokenizer(val_texts, is_split_into_words=True, return_offsets_mapping=True, padding=True, truncation=True, max_length=40)
+train_encodings = tokenizer(train_texts, is_split_into_words=True, return_offsets_mapping=True, padding=True,truncation=True, max_length=30)
+val_encodings = tokenizer(val_texts, is_split_into_words=True, return_offsets_mapping=True, padding=True, truncation=True, max_length=30)
+print(train_encodings)
+import sys
+sys.exit()
 
 
 train_labels = encode_tags(train_tags, train_encodings)
@@ -136,6 +131,7 @@ val_labels = encode_tags(val_tags, val_encodings)
 
 train_encodings.pop("offset_mapping") # we don't want to pass this to the model
 val_encodings.pop("offset_mapping")
+print(train_encodings[:3])
 
 #building tensor datasets
 train_dataset = tf.data.Dataset.from_tensor_slices((
@@ -151,19 +147,15 @@ test_dataset = tf.data.Dataset.from_tensor_slices((
 
 #training arguments
 training_args = TFTrainingArguments(
-    output_dir='E:\Projects\A_Idiom_detection_gihan\idiom_detection_nlp\models\\epie_models\\',          # output directory
-    num_train_epochs=10,              # total number of training epochs
-    learning_rate=2e-5,
-    per_device_train_batch_size=64,  # batch size per device during training
-    per_device_eval_batch_size=64,   # batch size for evaluation
-    warmup_steps=500,
-    load_best_model_at_end=True,# number of warmup steps for learning rate scheduler
-    weight_decay=0.01,
-    metric_for_best_model="f1",# strength of weight decay
-    logging_dir='E:\Projects\A_Idiom_detection_gihan\idiom_detection_nlp\models\\epie_models\\',            # directory for storing logs
-
-    disable_tqdm=False,
-    # evaluation_strategy= EvaluationStrategy.NO,
+    output_dir='E:\Projects\A_Idiom_detection_gihan\idiom_detection_nlp\models\\',          # output directory
+    num_train_epochs=3,              # total number of training epochs
+    per_device_train_batch_size=16,  # batch size per device during training
+    per_device_eval_batch_size=5,   # batch size for evaluation
+    warmup_steps=500,                # number of warmup steps for learning rate scheduler
+    weight_decay=0.01,               # strength of weight decay
+    logging_dir='E:\Projects\A_Idiom_detection_gihan\idiom_detection_nlp\models\\',            # directory for storing logs
+    logging_steps=10,
+    evaluation_strategy= EvaluationStrategy.NO,
 
 )
 
@@ -175,49 +167,14 @@ trainer = TFTrainer(
     args=training_args,                  # training arguments, defined above
     train_dataset=train_dataset,         # training dataset
     # eval_dataset=val_dataset             # evaluation dataset
-    # compute_metrics=compute_metrics,
 )
 
 
 trainer.train()
 
-model.save_pretrained('./EPIE_idiom_model')
-tokenizer.save_pretrained('./EPIE_idiom_model')
-# preds_output = trainer.predict(emotions_encoded["validation"])
-# print(preds_output.metrics)
-
 
 #predictions
 prediction_results = trainer.predict(test_dataset=test_dataset)
-# print(prediction_results.label_ids)
-# print(val_texts)
-# print(val_tags)
-trainer.save_model("E:\Projects\A_Idiom_detection_gihan\idiom_detection_nlp\models\\epie_models\\")
+trainer.save_model("E:\Projects\A_Idiom_detection_gihan\idiom_detection_nlp\models\\")
 
 compute_metrics(prediction_results,val_labels)
-
-out_df = pd.DataFrame()
-out_df['test_text'] = val_texts
-out_df['test_ground_labels'] = val_labels
-out_df['test_predictions'] = list(prediction_results.label_ids)
-
-out_df.to_csv('pred_investingation.csv')
-sents = ['That was a moot point']
-manual_sample_sentences = [i.split() for i in sents]
-print(manual_sample_sentences)
-manual_sample_tags = [[0,0,1,1,1]]
-
-manual_sample_encodings = tokenizer(manual_sample_sentences, is_split_into_words=True, return_offsets_mapping=True, padding=True,truncation=True, max_length=40)
-manual_sample_labels = encode_tags(manual_sample_tags, manual_sample_encodings)
-
-manual_sample_encodings.pop("offset_mapping") # we don't want to pass this to the model
-
-manual_sample_dataset = tf.data.Dataset.from_tensor_slices((
-    dict(manual_sample_encodings),
-    manual_sample_labels
-))
-
-
-prediction_results = trainer.predict(test_dataset=manual_sample_dataset)
-print(prediction_results.label_ids)
-print(manual_sample_encodings)

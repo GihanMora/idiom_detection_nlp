@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
 import torch
-from transformers import TrainingArguments, Trainer
+from transformers import TrainingArguments, Trainer, AutoTokenizer, BertModel, AutoModelForSequenceClassification
 from transformers import BertTokenizer, BertForSequenceClassification
 from transformers import EarlyStoppingCallback
 
@@ -13,10 +13,15 @@ from transformers import EarlyStoppingCallback
 data = pd.read_csv("E:\Projects\A_Idiom_detection_gihan\idiom_detection_nlp\\building_emotional_embeddings\EmotionLines\procesd_emotionlines_emo_ids.csv")
 
 # Define pretrained tokenizer and model
-model_name = "bert-base-uncased"
+# model_name = "bert-base-uncased"
+model_name = "ProsusAI/finbert"
+# tokenizer = AutoTokenizer.from_pretrained(model_name)
+# model = BertForSequenceClassification.from_pretrained(model_name)
+# model.num_labels = 8
+
+
 tokenizer = BertTokenizer.from_pretrained(model_name)
 model = BertForSequenceClassification.from_pretrained(model_name, num_labels=8)
-
 # ----- 1. Preprocess data -----#
 # Preprocess data
 X = list(data["utterance"])
@@ -61,7 +66,7 @@ def compute_metrics(p):
 
 # Define Trainer
 args = TrainingArguments(
-    output_dir="E:\Projects\A_Idiom_detection_gihan\idiom_detection_nlp\\building_emotional_embeddings\models\emotion_lines_500_steps",
+    output_dir="E:\Projects\Emotion_detection_gihan\\finbert_experiments\models\emotion_lines_500_steps",
     evaluation_strategy="steps",
     eval_steps=500,
     per_device_train_batch_size=8,
